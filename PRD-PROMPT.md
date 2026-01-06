@@ -370,7 +370,7 @@ First ask in conversation if they want to make changes.
 
 > "Ready to generate the specification files?
 >
-> 1. **Yes, generate files** - Create app_spec.txt and update prompt files
+> 1. **Yes, generate files** - Create prd.json in the project root
 > 2. **I have changes** - Let me add or modify something first"
 
 ---
