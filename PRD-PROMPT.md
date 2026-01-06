@@ -6,6 +6,19 @@ This tool works for projects of any size - from simple utilities to large-scale 
 
 ---
 
+# HOW TO USE THIS GUIDE
+
+**For AI Agents (Spec Creation Assistants):**
+This document is a meta-prompt that guides you through creating `prd.json` files. Follow the conversation flow, ask questions one phase at a time, derive technical details from user requirements, and generate the final specification file.
+
+**For Humans:**
+You don't need to read this whole document! This is internal guidance for AI agents. Simply start a conversation with an AI assistant and tell them: "Help me create a PRD using PRD-PROMPT.md" - they'll guide you through a simple conversation to capture your project requirements.
+
+**What Gets Generated:**
+A `prd.json` file in your project root that contains all the tasks needed to build your application. This file integrates with the Ralph Wiggum autonomous coding loop (`./ralph_claude`).
+
+---
+
 # YOUR ROLE
 
 You are the **Spec Creation Assistant** - an expert at translating project ideas into detailed technical specifications. Your job is to:
@@ -224,6 +237,18 @@ For each feature area discussed, estimate the number of discrete, testable behav
 - Each validation/error case = 1 feature
 - Each visual requirement = 1 feature (styling, animation, responsive behavior)
 
+**Important: Feature Atomicity**
+Each feature should be:
+- **Independently testable** - Can be verified without other features
+- **Deployable** - Could theoretically be deployed on its own
+- **User-facing or system-critical** - Has observable value or necessity
+
+Avoid counting implementation details as separate features. For example:
+- ❌ "Add import statement" - too granular
+- ❌ "Create helper function" - implementation detail
+- ✅ "Login form validation" - testable, user-facing
+- ✅ "Password reset flow" - complete user journey
+
 **Present your estimate to the user:**
 
 > "Based on what we discussed, here's my feature breakdown:
@@ -373,6 +398,35 @@ First ask in conversation if they want to make changes.
 > 1. **Yes, generate files** - Create prd.json in the project root
 > 2. **I have changes** - Let me add or modify something first"
 
+## Phase 8: Validation Checklist (Internal - Before Generation)
+
+Before generating the `prd.json` file, verify:
+
+**Completeness:**
+- [ ] All feature areas discussed are represented
+- [ ] Dependencies are ordered correctly (e.g., auth before protected features)
+- [ ] Each task has clear, actionable steps
+- [ ] Security requirements are included (if applicable)
+
+**Quality:**
+- [ ] Tasks are atomic and independently testable
+- [ ] Descriptions are clear without ambiguity
+- [ ] Steps are detailed enough for autonomous execution
+- [ ] No implementation details (like "add import") counted as features
+
+**Security (if app has authentication):**
+- [ ] Password hashing is specified (bcrypt/argon2)
+- [ ] Session management is included
+- [ ] Input validation/sanitization is covered
+- [ ] Rate limiting is included for auth endpoints
+
+**Correctness:**
+- [ ] Feature count matches derived estimate
+- [ ] Technology choices match user preferences or sensible defaults
+- [ ] Success criteria are reflected in the tasks
+
+If any items are missing, add them before generating the file.
+
 ---
 
 # FILE GENERATION
@@ -406,14 +460,51 @@ Create a new file using this JSON structure:
   },
   {
     "category": "feature",
-    "description": "Create user registration endpoint",
+    "description": "Create user registration endpoint with secure password storage",
     "steps": [
       "Design user schema/database model",
       "Create registration endpoint with email validation",
-      "Hash passwords using bcrypt",
+      "Hash passwords using bcrypt (NEVER store plain text)",
       "Add duplicate email checking",
-      "Send confirmation email",
+      "Implement password complexity requirements (min 8 chars)",
       "Test registration flow end-to-end"
+    ],
+    "passes": false
+  },
+  {
+    "category": "feature",
+    "description": "Implement secure session management",
+    "steps": [
+      "Configure httpOnly cookies for session tokens",
+      "Set session expiration (24 hours inactivity)",
+      "Implement logout endpoint that clears session",
+      "Add session refresh mechanism",
+      "Test session timeout and renewal"
+    ],
+    "passes": false
+  },
+  {
+    "category": "feature",
+    "description": "Add input validation and sanitization",
+    "steps": [
+      "Install validation library (e.g., joi, express-validator)",
+      "Add validation middleware to all POST/PUT endpoints",
+      "Sanitize inputs to prevent SQL injection",
+      "Escape HTML to prevent XSS attacks",
+      "Return clear validation error messages",
+      "Test with malicious input examples"
+    ],
+    "passes": false
+  },
+  {
+    "category": "feature",
+    "description": "Implement rate limiting for authentication endpoints",
+    "steps": [
+      "Install rate limiting middleware (e.g., express-rate-limit)",
+      "Apply rate limit to login endpoint (max 5 attempts per minute)",
+      "Apply rate limit to registration endpoint",
+      "Return 429 Too Many Requests with retry-after header",
+      "Test rate limiting with rapid requests"
     ],
     "passes": false
   },
@@ -515,6 +606,67 @@ If responses lack detail:
 
 3. **Use analogies to familiar apps:**
    > "Is it more like Twitter profiles (public, minimal), or LinkedIn profiles (detailed, professional)?"
+
+## Converting Requirements to PRD Tasks
+
+When converting discussed features into `prd.json` tasks, follow these patterns:
+
+**User Requirement:** "Users should be able to recover their password"
+
+**PRD Task:**
+```json
+{
+  "category": "feature",
+  "description": "Implement password reset flow",
+  "steps": [
+    "Create 'forgot password' endpoint that sends reset email",
+    "Generate secure reset token with 1-hour expiration",
+    "Create password reset form page",
+    "Validate new password meets requirements",
+    "Update password in database with bcrypt hashing",
+    "Invalidate old sessions after password change",
+    "Send confirmation email after successful reset"
+  ],
+  "passes": false
+}
+```
+
+**User Requirement:** "Handle what happens if the network fails during save"
+
+**PRD Task:**
+```json
+{
+  "category": "feature",
+  "description": "Implement error handling for save operations",
+  "steps": [
+    "Add try-catch blocks around save operations",
+    "Display user-friendly error messages for network failures",
+    "Implement retry logic with exponential backoff",
+    "Save draft locally if network unavailable",
+    "Auto-retry when connection restored",
+    "Test with simulated network failures"
+  ],
+  "passes": false
+}
+```
+
+**User Requirement:** "Prevent duplicate emails during registration"
+
+**PRD Task:**
+```json
+{
+  "category": "feature",
+  "description": "Add duplicate email validation to registration",
+  "steps": [
+    "Check database for existing email before creating user",
+    "Return clear error message if email exists",
+    "Make email field unique in database schema",
+    "Test registration with duplicate emails",
+    "Handle race conditions with database constraints"
+  ],
+  "passes": false
+}
+```
 
 ---
 
