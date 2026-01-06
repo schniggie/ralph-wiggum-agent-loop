@@ -61,86 +61,6 @@ Success Criteria:
 - PRD fully updated
 ```
 
-## Integration Examples
-
-### Generic API Call (cURL)
-
-```bash
-result=$(curl -s -X POST https://your-api-endpoint \
-  -H "Content-Type: application/json" \
-  -d @- << 'EOF'
-{
-  "model": "your-model-name",
-  "messages": [
-    {
-      "role": "system",
-      "content": "$(cat PROMPT_TEMPLATES.md | sed -n '/^You are an autonomous/,/NEVER skip quality/p')"
-    },
-    {
-      "role": "user",
-      "content": "Current PRD:\n$(cat plans/prd.json)\n\nProgress so far:\n$(cat progress.txt)\n\nYour instructions: [follow the steps above]"
-    }
-  ]
-}
-EOF
-)
-```
-
-### Claude via Anthropic SDK
-
-```bash
-#!/bin/bash
-
-ITERATIONS=${1:-50}
-
-for ((i=1; i<=$ITERATIONS; i++)); do
-  echo "=== Iteration $i ==="
-
-  result=$(cat << 'EOF' | anthropic generate
-{
-  "system": "You are an autonomous developer. Work through tasks in the PRD one at a time. Complete each task, run tests, commit, and update progress. Output <promise>COMPLETE</promise> when done.",
-  "user_message": "PRD:\n$(cat plans/prd.json)\n\nProgress:\n$(cat progress.txt)\n\nComplete the next highest-priority task."
-}
-EOF
-)
-
-  echo "$result" >> progress.txt
-
-  if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    break
-  fi
-done
-```
-
-### OpenAI API
-
-```bash
-#!/bin/bash
-
-function call_openai() {
-  local prompt="$1"
-  curl -s https://api.openai.com/v1/chat/completions \
-    -H "Authorization: Bearer $OPENAI_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d @- << EOF
-{
-  "model": "gpt-4",
-  "messages": [
-    {"role": "system", "content": "You are a helpful coding assistant..."},
-    {"role": "user", "content": "$prompt"}
-  ],
-  "temperature": 0.3,
-  "max_tokens": 2000
-}
-EOF
-}
-
-prd_content=$(cat plans/prd.json)
-progress_content=$(cat progress.txt)
-
-result=$(call_openai "PRD: $prd_content\n\nProgress: $progress_content\n\nComplete the next task...")
-```
-
 ## Prompt Tuning Tips
 
 ### For Your Specific Agent
@@ -168,16 +88,6 @@ Keep progress.txt:
 - Include: timestamp, task name, status
 - Document failures or obstacles
 
-## Debugging
-
-If the agent gets stuck:
-
-1. **Make tasks smaller**: Break into 2-3 more granular tasks
-2. **Add examples**: Include example code in the PRD
-3. **Reduce context**: Limit the amount of history in progress.txt
-4. **Check output**: Verify the agent is actually updating files
-5. **Test manually**: Do one task manually first to understand the setup
-
 ## Common Issues & Solutions
 
 ### Agent Ignores PRD
@@ -199,3 +109,10 @@ If the agent gets stuck:
 - Set iteration limit (50, 100, etc.)
 - Add timeout to loop script
 - Check for `<promise>COMPLETE</promise>` marker
+
+### Agent Gets Stuck
+- Make tasks smaller: Break into 2-3 more granular tasks
+- Add examples: Include example code in the PRD
+- Reduce context: Limit the amount of history in progress.txt
+- Check output: Verify the agent is actually updating files
+- Test manually: Do one task manually first to understand the setup
