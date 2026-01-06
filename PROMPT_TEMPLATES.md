@@ -146,57 +146,56 @@ result=$(call_openai "PRD: $prd_content\n\nProgress: $progress_content\n\nComple
 ### For Your Specific Agent
 
 1. **Understand the Agent**: Know what formats it expects (JSON, text, markdown)
-2. 2. **Be Explicit About Format**: Tell it exactly how to output responses
-   3. 3. **Use Clear Markers**: Use `<promise>COMPLETE</promise>` or similar for state detection
-      4. 4. **Give Context**: Include recent progress to help it understand what's been done
-         5. 5. **Step-by-Step**: Break complex tasks into numbered substeps
-           
-            6. ### PRD Formatting
-           
-            7. Keep PRD tasks:
-            8. - **Specific**: Not "implement auth" but "implement JWT token refresh logic"
-               - - **Measurable**: Steps should be checkable
-                 - - **Small**: Complete in <30 minutes of code
-                   - - **Ordered**: Most important first
-                     - - **Atomic**: One feature per task
-                      
-                       - ### Progress Log Format
-                      
-                       - Keep progress.txt:
-                       - - Chronological (newest at bottom)
-                         - - One line per completed task
-                           - - Include: timestamp, task name, status
-                             - - Document failures or obstacles
-                              
-                               - ## Debugging
-                              
-                               - If the agent gets stuck:
-                              
-                               - 1. **Make tasks smaller**: Break into 2-3 more granular tasks
-                                 2. 2. **Add examples**: Include example code in the PRD
-                                    3. 3. **Reduce context**: Limit the amount of history in progress.txt
-                                       4. 4. **Check output**: Verify the agent is actually updating files
-                                          5. 5. **Test manually**: Do one task manually first to understand the setup
-                                            
-                                             6. ## Common Issues & Solutions
-                                            
-                                             7. ### Agent Ignores PRD
-                                             8. - Make system prompt more forceful about following steps
-                                                - - Add: "ONLY work on the exact task specified"
-                                                  - - Example task at top of PRD for reference
-                                                   
-                                                    - ### Poor Code Quality
-                                                    - - Add explicit test/lint commands to each task's steps
-                                                      - - Include "verify code style matches project" as a step
-                                                        - - Make code review a mandatory step
-                                                         
-                                                          - ### Incomplete Commits
-                                                          - - Add: "Create ONE atomic commit per task"
-                                                            - - Specify exact commit message format
-                                                              - - Include commit in the success criteria
-                                                               
-                                                                - ### Infinite Loops
-                                                                - - Set iteration limit (50, 100, etc.)
-                                                                  - - Add timeout to loop script
-                                                                    - - Check for `<promise>COMPLETE</promise>` marker
-                                                                      - 
+2. **Be Explicit About Format**: Tell it exactly how to output responses
+3. **Use Clear Markers**: Use `<promise>COMPLETE</promise>` or similar for state detection
+4. **Give Context**: Include recent progress to help it understand what's been done
+5. **Step-by-Step**: Break complex tasks into numbered substeps
+
+### PRD Formatting
+
+Keep PRD tasks:
+- **Specific**: Not "implement auth" but "implement JWT token refresh logic"
+- **Measurable**: Steps should be checkable
+- **Small**: Complete in <30 minutes of code
+- **Ordered**: Most important first
+- **Atomic**: One feature per task
+
+### Progress Log Format
+
+Keep progress.txt:
+- Chronological (newest at bottom)
+- One line per completed task
+- Include: timestamp, task name, status
+- Document failures or obstacles
+
+## Debugging
+
+If the agent gets stuck:
+
+1. **Make tasks smaller**: Break into 2-3 more granular tasks
+2. **Add examples**: Include example code in the PRD
+3. **Reduce context**: Limit the amount of history in progress.txt
+4. **Check output**: Verify the agent is actually updating files
+5. **Test manually**: Do one task manually first to understand the setup
+
+## Common Issues & Solutions
+
+### Agent Ignores PRD
+- Make system prompt more forceful about following steps
+- Add: "ONLY work on the exact task specified"
+- Example task at top of PRD for reference
+
+### Poor Code Quality
+- Add explicit test/lint commands to each task's steps
+- Include "verify code style matches project" as a step
+- Make code review a mandatory step
+
+### Incomplete Commits
+- Add: "Create ONE atomic commit per task"
+- Specify exact commit message format
+- Include commit in the success criteria
+
+### Infinite Loops
+- Set iteration limit (50, 100, etc.)
+- Add timeout to loop script
+- Check for `<promise>COMPLETE</promise>` marker
