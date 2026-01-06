@@ -1,0 +1,63 @@
+[
+    {
+          "category": "feature",
+          "description": "Implement user authentication with JWT tokens",
+          "steps": [
+                  "Set up JWT library in your project",
+                  "Create login endpoint that validates credentials",
+                  "Generate and return JWT token on successful login",
+                  "Create middleware to verify JWT on protected routes",
+                  "Test login flow and token validation",
+                  "Add refresh token logic"
+          ],
+          "passes": false
+    },
+    {
+          "category": "feature",
+          "description": "Create user registration endpoint",
+          "steps": [
+                  "Design user schema/database model",
+                  "Create registration endpoint with email validation",
+                  "Hash passwords using bcrypt",
+                  "Add duplicate email checking",
+                  "Send confirmation email",
+                  "Test registration flow end-to-end"
+          ],
+          "passes": false
+    },
+    {
+          "category": "bug",
+          "description": "Fix CORS errors in API responses",
+          "steps": [
+                  "Identify which routes are causing CORS errors",
+                  "Configure CORS middleware with proper origins",
+                  "Test requests from frontend domain",
+                  "Verify credentials are sent correctly"
+          ],
+          "passes": false
+    },
+    {
+          "category": "feature",
+          "description": "Add pagination to list endpoints",
+          "steps": [
+                  "Add limit and offset query parameters",
+                  "Implement database query pagination",
+                  "Return total count and page info in response",
+                  "Test with various page sizes",
+                  "Add default limit to prevent large queries"
+          ],
+          "passes": false
+    },
+    {
+          "category": "feature",
+          "description": "Implement error handling and validation",
+          "steps": [
+                  "Create custom error response format",
+                  "Add input validation for all endpoints",
+                  "Return appropriate HTTP status codes",
+                  "Log errors for debugging",
+                  "Test error scenarios"
+          ],
+          "passes": false
+    }
+]
