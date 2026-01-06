@@ -31,19 +31,22 @@ The pattern mimics how real engineers work: pick a task → complete it → comm
 
 ```
 .
-├── README.md           # This file
-├── PROMPT.md           # Agent instructions
-├── prd.json            # Product requirements (task list)
-├── progress.txt        # Progress log
-├── ralph_claude        # Claude implementation
-└── PROMPT_TEMPLATES.md # Prompt templates for other agents
+├── README.md              # This file
+├── PROMPT.md              # Agent instructions
+├── PRD-PROMPT.md          # Detailed PRD creation guide
+├── PROMPT_TEMPLATES.md    # Prompt templates for other agents
+├── progress.txt           # Progress log (example)
+├── ralph_claude           # Claude implementation script
+├── plans/
+│   └── example-prd.json   # Example PRD file
+└── LICENSE
 ```
 
 ## Quick Start
 
 ### 1. Create Your PRD
 
-Create `prd.json` with your task list:
+Create a `prd.json` file in your project root with your task list (see `plans/example-prd.json` for reference):
 
 ```json
 [
@@ -62,22 +65,32 @@ Create `prd.json` with your task list:
 
 ### 2. Initialize Progress
 
-Create `progress.txt`:
+Create a `progress.txt` file to track your work:
 
 ```
 === Ralph Wiggum Progress Log ===
+Project: Your Project Name
 Started: 2026-01-06
 ```
 
 ### 3. Run the Loop
 
-For Claude Code:
+For Claude Code CLI:
 
 ```bash
-./ralph_claude 50
+./ralph_claude 50  # Run 50 iterations
 ```
 
-For other agents, see `PROMPT_TEMPLATES.md` for implementation guidance.
+The script will:
+- Read your PRD and progress
+- Select the highest-priority task
+- Implement it completely
+- Run tests and type checks
+- Commit the changes
+- Update progress
+- Repeat
+
+For other AI agents (GPT, Gemini, etc.), see `PROMPT_TEMPLATES.md` for implementation guidance.
 
 ## How It Works
 
@@ -87,10 +100,13 @@ For other agents, see `PROMPT_TEMPLATES.md` for implementation guidance.
 4. **Progress update**: Agent updates `prd.json` and appends to `progress.txt`
 5. **Repeat**: Loop continues until all tasks complete or max iterations reached
 
-## Implementation Scripts
+## Files and Templates
 
-- **`ralph_claude`**: Implementation for Claude Code CLI
-- **`PROMPT_TEMPLATES.md`**: Templates for other agents (GPT, Gemini, etc.)
+- **`ralph_claude`**: Bash script implementing the loop for Claude Code CLI
+- **`PROMPT.md`**: Instructions given to the agent on each iteration
+- **`PROMPT_TEMPLATES.md`**: Templates for implementing with other AI agents (GPT, Gemini, etc.)
+- **`PRD-PROMPT.md`**: Comprehensive guide for creating effective PRDs
+- **`plans/example-prd.json`**: Example PRD structure with sample tasks
 
 ## PRD Best Practices
 
