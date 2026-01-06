@@ -158,9 +158,28 @@ Ask about user roles:
 **Also ask about authentication:**
 
 - How do users log in? (email/password, social login, SSO)
-- Password requirements? (for security testing)
+- Password requirements? (minimum length, complexity)
 - Session timeout? Auto-logout after inactivity?
 - Any sensitive operations requiring extra confirmation?
+
+**Security Best Practices to Incorporate (Don't ask, just include in spec):**
+
+When deriving technical specifications, ensure the PRD includes these security requirements:
+
+- **Password Storage:** Always hash passwords with bcrypt/argon2 (NEVER store plain text)
+- **Session Management:**
+  - Use secure, httpOnly cookies for session tokens
+  - Implement session expiration (e.g., 24 hours inactivity)
+  - Clear sessions on logout
+- **Input Validation:** Validate and sanitize all user inputs (prevent SQL injection, XSS)
+- **Rate Limiting:** Protect authentication endpoints (e.g., max 5 login attempts per minute)
+- **HTTPS Only:** All authentication/sensitive data over HTTPS in production
+- **CSRF Protection:** Implement CSRF tokens for state-changing operations
+- **Privacy Considerations:**
+  - Allow users to delete their data (GDPR compliance)
+  - Be transparent about what data is collected
+  - Don't share user data without consent
+  - Implement "export my data" if storing substantial user information
 
 **4j. Data Flow & Integration**
 
@@ -219,6 +238,72 @@ For each feature area discussed, estimate the number of discrete, testable behav
 > Does this seem right, or should I adjust?"
 
 Let the user confirm or adjust. This becomes your `feature_count` for the spec.
+
+### Feature Counting Examples
+
+**Example 1: Todo List App**
+- User Authentication: ~15 features
+  - Login form validation (3: email format, password present, error display)
+  - JWT token generation/storage (2)
+  - Logout functionality (1)
+  - Session persistence (2)
+  - Password reset flow (4: request, email, reset form, confirmation)
+  - Error handling (3: network errors, invalid credentials, expired sessions)
+- Todo CRUD: ~20 features
+  - Create todo (4: form, validation, save, success feedback)
+  - Read/display todos (3: fetch, render, empty state)
+  - Update todo (5: edit mode, save changes, optimistic updates, error handling, status toggle)
+  - Delete todo (4: delete button, confirmation modal, removal, undo option)
+  - Mark complete/incomplete (4: toggle, visual feedback, persistence, bulk actions)
+- Filtering/Search: ~10 features
+  - Search by text (3: input, live filtering, clear button)
+  - Filter by status (3: all/active/complete tabs)
+  - Sort options (2: by date, by priority)
+  - Results count display (1)
+  - Persist filter state (1)
+- UI/UX: ~8 features
+  - Responsive layout (2: mobile, desktop)
+  - Dark/light mode toggle (2)
+  - Loading states (2)
+  - Error boundaries (2)
+
+**Total: ~53 features**
+
+**Example 2: Simple Blog**
+- Content Management: ~25 features
+  - Create post (5: editor, title/body validation, save draft, publish, preview)
+  - Edit post (4: load existing, update, autosave, publish changes)
+  - Delete post (3: delete button, confirmation, cascade comments)
+  - Rich text editing (4: formatting toolbar, image upload, link insertion, markdown support)
+  - Post metadata (4: categories, tags, publish date, author)
+  - SEO fields (3: meta description, slug, featured image)
+  - Draft/published status (2)
+- Public Display: ~15 features
+  - Homepage feed (4: list posts, pagination, featured post, load more)
+  - Individual post page (3: render content, metadata, share buttons)
+  - Category pages (2)
+  - Tag filtering (2)
+  - Search posts (3)
+  - RSS feed (1)
+- Comments: ~12 features
+  - Add comment (4: form, validation, spam prevention, submit)
+  - Display comments (3: threaded view, timestamps, author names)
+  - Comment moderation (3: approve/reject, delete, mark spam)
+  - Nested replies (2)
+
+**Total: ~52 features**
+
+**Example 3: E-commerce MVP**
+- Product Catalog: ~30 features
+- Shopping Cart: ~25 features
+- Checkout Flow: ~35 features
+- User Accounts: ~20 features
+- Order Management: ~25 features
+- Admin Dashboard: ~30 features
+
+**Total: ~165 features**
+
+Use these examples to calibrate your estimates. Remember: it's better to slightly overestimate than underestimate.
 
 ## Phase 5: Technical Details (DERIVED OR DISCUSSED)
 
@@ -294,22 +379,20 @@ First ask in conversation if they want to make changes.
 
 **Note: This section is for YOU (the agent) to execute. Do not burden the user with these technical details.**
 
-## Output Directory
+## Output Location
 
-The output directory is: `$ARGUMENTS/prompts/`
-
-Once the user approves, generate these files:
+Once the user approves, generate the PRD file.
 
 ## 1. Generate `prd.json`
 
-**Output path:** `$ARGUMENTS/prompts/app_spec.txt`
+**Output path:** `prd.json` (in the project root directory)
 
-Create a new file using this json structure:
+Create a new file using this JSON structure:
 
 ```json
 [
   {
-    "category": "backend",
+    "category": "feature",
     "description": "Implement user authentication with JWT tokens",
     "steps": [
       "Set up JWT library in your project",
@@ -322,7 +405,7 @@ Create a new file using this json structure:
     "passes": false
   },
   {
-    "category": "backend",
+    "category": "feature",
     "description": "Create user registration endpoint",
     "steps": [
       "Design user schema/database model",
@@ -347,6 +430,140 @@ Create a new file using this json structure:
   }
 ]
 ```
+
+### Field Descriptions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `category` | string | Type of task: `"feature"` (new functionality), `"bug"` (fix existing issue), or `"backend"` (backend-specific work) |
+| `description` | string | Clear, concise summary of what needs to be implemented |
+| `steps` | string[] | Ordered list of implementation steps for the autonomous agent to follow |
+| `passes` | boolean | Task completion status. Always starts as `false`, set to `true` when complete |
+
+### Schema Notes
+
+- All tasks start with `"passes": false`
+- The autonomous agent will update `"passes": true` after successful implementation and testing
+- Each task should be atomic and independently testable
+- Steps should be detailed enough for an AI agent to execute without human intervention
+
+---
+
+# HANDLING COMMON ISSUES
+
+## Contradictory Requirements
+
+If the user provides conflicting requirements:
+
+1. **Acknowledge the conflict immediately:**
+   > "I notice we have a conflict here. You mentioned [X], but also said [Y]. These seem to contradict each other."
+
+2. **Explain the trade-off clearly:**
+   > "If we do [X], it means [consequence]. If we do [Y], it means [different consequence]."
+
+3. **Ask for clarification:**
+   > "Which direction would you prefer, or is there a third option I'm missing?"
+
+## Scope Creep During Feature Discovery
+
+If the feature list keeps growing during Phase 4:
+
+1. **Acknowledge the expansion:**
+   > "We've added quite a few features! This is great detail, but I want to make sure we stay focused."
+
+2. **Summarize what's been added:**
+   > "So far we have: [list categories]. That's currently around [X] features."
+
+3. **Offer a checkpoint:**
+   > "Should we continue adding features, or would you like to start with these and add more later?"
+
+## Feature Count Significantly Off from Expectations
+
+If your derived feature count doesn't match user expectations:
+
+1. **Present your breakdown transparently:**
+   > "Based on our discussion, I'm estimating ~[N] features. Here's how I got there: [breakdown]"
+
+2. **If they think it's too high:**
+   > "We can reduce scope by: [list optional features or areas to simplify]"
+
+3. **If they think it's too low:**
+   > "Let's go back through the feature areas. What am I missing or underestimating?"
+
+## Technical Feasibility Concerns
+
+If you identify that some requirements may be technically challenging:
+
+1. **Don't hide concerns:**
+   > "I want to flag that [feature X] might be complex because [reason]."
+
+2. **Offer alternatives:**
+   > "We could start with a simpler version: [alternative approach], then enhance it later."
+
+3. **Let the user decide priority:**
+   > "Is this feature critical for the first version, or could we plan it for later?"
+
+## User Provides Vague or Incomplete Answers
+
+If responses lack detail:
+
+1. **Ask specific follow-up questions:**
+   > "When you say 'user profiles', do you mean just a name and avatar, or full bios, settings, preferences, etc.?"
+
+2. **Provide examples to prompt thinking:**
+   > "For example, should users be able to: upload a profile picture? Set privacy preferences? Add social links?"
+
+3. **Use analogies to familiar apps:**
+   > "Is it more like Twitter profiles (public, minimal), or LinkedIn profiles (detailed, professional)?"
+
+---
+
+# INTEGRATION WITH RALPH WIGGUM LOOP
+
+After generating `prd.json`, here's how it integrates with the autonomous coding workflow:
+
+## The Full Flow
+
+```
+1. You (Spec Assistant) → Generate prd.json
+2. User runs: ./ralph_claude <iterations>
+3. Agent reads: PROMPT.md (instructions) + prd.json (tasks) + progress.txt (history)
+4. Agent implements one task at a time
+5. Agent updates: prd.json (marks passes: true) + progress.txt (logs work)
+6. Agent commits changes
+7. Loop continues until all tasks have "passes": true
+```
+
+## File Relationships
+
+| File | Purpose | Who Updates It |
+|------|---------|----------------|
+| `prd.json` | Task backlog with completion status | You (initial creation), then autonomous agent (marks complete) |
+| `PROMPT.md` | Instructions for the autonomous agent on how to work | Repository maintainer (rarely changes) |
+| `progress.txt` | Chronological log of completed work | Autonomous agent (appends after each task) |
+| `ralph_claude` | Shell script that runs the loop | Repository maintainer (rarely changes) |
+
+## What Happens After You Generate the PRD
+
+1. **User reviews** `prd.json` to confirm tasks are correct
+2. **User runs** `./ralph_claude 10` (or however many iterations)
+3. **Agent loop begins:**
+   - Iteration 1: Reads PRD, picks highest-priority task, implements it, tests it, marks complete, commits
+   - Iteration 2: Reads updated PRD, picks next task, implements, tests, commits
+   - ... continues until all tasks complete or iterations exhausted
+4. **User reviews** the code, runs final tests, deploys
+
+## Your Responsibility
+
+Generate a `prd.json` that:
+- Has clear, atomic tasks (each can be completed independently)
+- Includes detailed implementation steps
+- Covers all features discussed
+- Is ordered logically (dependencies first, e.g., auth before protected routes)
+
+The better your PRD, the more effectively the autonomous agent can build the application.
+
+---
 
 # IMPORTANT REMINDERS
 
