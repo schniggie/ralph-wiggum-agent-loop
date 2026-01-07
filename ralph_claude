@@ -40,8 +40,20 @@ for ((i=1; i<=$1; i++)); do
     echo "$result"
 
     if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-        echo "PRD complete, exiting."
-        exit 0
+        # Verify that all tasks in prd.json have passes: true
+        if [ -f "$PRD_FILE" ]; then
+            false_count=$(jq '[.[].passes] | map(select(. == false)) | length' "$PRD_FILE")
+            if [ "$false_count" -gt 0 ]; then
+                echo "WARNING: Claude signaled completion but $false_count tasks still have passes: false"
+                echo "Continuing iterations..."
+            else
+                echo "PRD complete and all tasks pass, exiting."
+                exit 0
+            fi
+        else
+            echo "PRD complete (no prd.json found), exiting."
+            exit 0
+        fi
     fi
 done
 
