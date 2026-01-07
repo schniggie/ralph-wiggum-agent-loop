@@ -25,7 +25,7 @@ for ((i=1; i<=$1; i++)); do
     echo "Iteration $i"
     echo "=========================================="
 
-    result=$(claude --permission-mode acceptedits -p "$PROMPT_FILE" @progress.txt)
+    result=$(claude --permission-mode acceptEdits -p "$PROMPT_FILE" @progress.txt)
 
     # 1. Find the highest-priority feature to work on and work only on that feature.
     #    This should be the one YOU decide has the highest priority - not necessarily the first
