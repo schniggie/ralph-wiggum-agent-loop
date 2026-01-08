@@ -94,11 +94,19 @@ For other AI agents (GPT, Gemini, etc.), see `PROMPT_TEMPLATES.md` for implement
 
 ## How It Works
 
-1. **Loop starts**: Agent reads `prd.json` and `progress.txt`
-2. **Task selection**: Agent picks highest-priority incomplete task
-3. **Implementation**: Agent completes the task, runs tests, makes commit
-4. **Progress update**: Agent updates `prd.json` and appends to `progress.txt`
-5. **Repeat**: Loop continues until all tasks complete or max iterations reached
+1. **Backup**: Before each iteration, `prd.json` and `progress.txt` are backed up to `../.backup/` with iteration counter in filename
+2. **Loop starts**: Agent reads `prd.json` and `progress.txt`
+3. **Task selection**: Agent picks highest-priority incomplete task
+4. **Implementation**: Agent completes the task, runs tests, makes commit
+5. **Progress update**: Agent updates `prd.json` (only the `passes` field) and appends to `progress.txt`
+6. **Repeat**: Loop continues until all tasks complete or max iterations reached
+
+### Safety Features
+
+- **Automatic backups**: `prd.json` and `progress.txt` are backed up before each iteration to `../.backup/prd_iteration_N.json` and `../.backup/progress_iteration_N.txt`
+- **Restricted modifications**: The agent can only change the `passes` attribute in `prd.json`, preventing accidental corruption
+- **Append-only progress**: `progress.txt` is append-only to preserve history
+- **No temporary files**: The agent is instructed not to create temporary `progress_*.txt` files
 
 ## Files and Templates
 

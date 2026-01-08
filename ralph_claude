@@ -25,6 +25,20 @@ for ((i=1; i<=$1; i++)); do
     echo "Iteration $i"
     echo "=========================================="
 
+    # Backup prd.json and progress.txt before iteration
+    BACKUP_DIR="../.backup"
+    mkdir -p "$BACKUP_DIR"
+
+    if [ -f "$PRD_FILE" ]; then
+        cp "$PRD_FILE" "$BACKUP_DIR/prd_iteration_${i}.json"
+        echo "Backed up prd.json to $BACKUP_DIR/prd_iteration_${i}.json"
+    fi
+
+    if [ -f "$PROGRESS_FILE" ]; then
+        cp "$PROGRESS_FILE" "$BACKUP_DIR/progress_iteration_${i}.txt"
+        echo "Backed up progress.txt to $BACKUP_DIR/progress_iteration_${i}.txt"
+    fi
+
     result=$(claude --permission-mode acceptEdits -p "$PROMPT_FILE" @progress.txt)
 
     # 1. Find the highest-priority feature to work on and work only on that feature.

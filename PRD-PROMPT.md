@@ -694,6 +694,20 @@ After generating `prd.json`, here's how it integrates with the autonomous coding
 | `PROMPT.md` | Instructions for the autonomous agent on how to work | Repository maintainer (rarely changes) |
 | `progress.txt` | Chronological log of completed work | Autonomous agent (appends after each task) |
 | `ralph_claude` | Shell script that runs the loop | Repository maintainer (rarely changes) |
+| `../.backup/` | Backup directory for prd.json and progress.txt | Automatic (created by ralph_claude before each iteration) |
+
+## Backup and Safety Features
+
+The Ralph Wiggum loop includes automatic backup functionality to protect against data loss:
+
+- **Before each iteration**, `prd.json` and `progress.txt` are backed up to `../.backup/`
+- Backup filenames include the iteration counter: `prd_iteration_1.json`, `progress_iteration_1.txt`, etc.
+- This prevents loss of critical data if the agent corrupts or clears these files
+- The agent is strictly instructed to:
+  - **Only modify the `passes` attribute** in `prd.json` (not add/delete/modify other fields)
+  - **Only append to `progress.txt`** (never overwrite or clear it)
+  - **Never create temporary progress_*.txt files** (use only the main progress.txt)
+  - **Clean up any temporary files** before committing
 
 ## What Happens After You Generate the PRD
 
