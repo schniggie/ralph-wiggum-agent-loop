@@ -26,6 +26,12 @@ CRITICAL RULES:
 - Make atomic git commits with conventional commit format (feat:, fix:, etc.)
 - When ALL tasks are complete, output exactly: <promise>COMPLETE</promise>
 - NEVER skip quality checks or commit without passing tests
+
+FILE HANDLING RULES (CRITICAL):
+- In prd.json: ONLY modify the "passes" attribute (never add/delete/modify items or other fields)
+- In progress.txt: ONLY APPEND (never overwrite or clear)
+- NEVER create temporary progress_*.txt files
+- Clean up any temporary files before committing
 ```
 
 ## User Prompt Template (Each Iteration)
@@ -43,10 +49,11 @@ Your instructions:
 3. After implementing, run your project's quality checks:
    - npm test / pytest / go test (as applicable)
    - Type checking if available
-4. Update the PRD: change the completed task's "passes" field from false to true
-5. Append a line to progress.txt documenting what you just completed
-6. Create a git commit: git add -A && git commit -m "feat: [task name]"
-7. Repeat: go back to step 1 until you encounter the <promise>COMPLETE</promise> marker
+4. Update the PRD: change ONLY the completed task's "passes" field from false to true (DO NOT modify any other fields)
+5. Append a line to progress.txt documenting what you just completed (DO NOT overwrite, only append)
+6. Clean up any temporary files (DO NOT leave progress_*.txt or other temp files)
+7. Create a git commit: git add -A && git commit -m "feat: [task name]"
+8. Repeat: go back to step 1 until you encounter the <promise>COMPLETE</promise> marker
 
 If something fails:
 - Debug the error
@@ -87,6 +94,31 @@ Keep progress.txt:
 - One line per completed task
 - Include: timestamp, task name, status
 - Document failures or obstacles
+
+## Backup and Safety
+
+The Ralph Wiggum loop includes automatic backup functionality:
+
+- Before each iteration, `prd.json` and `progress.txt` are automatically backed up to `../.backup/`
+- Backup filenames include the iteration counter: `prd_iteration_1.json`, `progress_iteration_1.txt`, etc.
+- This protects against accidental corruption or deletion of critical files
+- If the agent corrupts these files, you can restore from the most recent backup
+
+To implement this in your own loop script:
+
+```bash
+# At the start of each iteration
+BACKUP_DIR="../.backup"
+mkdir -p "$BACKUP_DIR"
+
+if [ -f "prd.json" ]; then
+    cp "prd.json" "$BACKUP_DIR/prd_iteration_${iteration_number}.json"
+fi
+
+if [ -f "progress.txt" ]; then
+    cp "progress.txt" "$BACKUP_DIR/progress_iteration_${iteration_number}.txt"
+fi
+```
 
 ## Common Issues & Solutions
 
