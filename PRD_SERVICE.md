@@ -6,6 +6,12 @@ A lightweight Flask webservice for safely managing `prd.json` files during long 
 
 During long agent runs (100+ iterations), agents can corrupt `prd.json` files when directly editing them. This webservice provides a safe REST API interface using curl on localhost, eliminating direct file manipulation.
 
+## Requirements
+
+- Python 3.7 or higher
+- Flask 3.1.0
+- pytest 8.3.4 (for running tests)
+
 ## Quick Start
 
 ### Installation
@@ -135,18 +141,33 @@ curl -X PATCH http://localhost:5000/tasks/1/pass
 
 ### 5. Health Check
 
-Check if the service is running and the PRD file exists.
+Check if the service is running, verify the PRD file exists, and get task statistics.
 
 ```bash
 curl http://localhost:5000/health
 ```
 
-**Response:**
+**Response (when file exists):**
 ```json
 {
   "status": "healthy",
   "prd_file": "prd.json",
-  "file_exists": true
+  "file_exists": true,
+  "statistics": {
+    "total_tasks": 10,
+    "passed_tasks": 7,
+    "pending_tasks": 3,
+    "completion_percentage": 70.0
+  }
+}
+```
+
+**Response (when file doesn't exist):**
+```json
+{
+  "status": "healthy",
+  "prd_file": "prd.json",
+  "file_exists": false
 }
 ```
 
@@ -235,9 +256,35 @@ PRD_FILE=./plans/my-project-prd.json PORT=8080 python3 prd_service.py
 
 1. **Safety**: No direct file editing prevents corruption
 2. **Simplicity**: Standard REST API with curl commands
-3. **Atomicity**: Each operation is a discrete HTTP request
+3. **Atomicity**: Each operation is a discrete HTTP request with file locking
 4. **Debugging**: Easy to test and debug with curl
 5. **Language Agnostic**: Works with any agent that can make HTTP requests
+6. **Concurrent Access**: File locking prevents race conditions during simultaneous reads/writes
+7. **Input Validation**: Ensures task structure integrity before operations
+8. **Structured Logging**: Detailed logs for debugging long agent runs
+
+## Safety Features
+
+### File Locking
+The service uses `fcntl` to implement file locking:
+- **Shared locks** for read operations (multiple readers allowed)
+- **Exclusive locks** for write operations (single writer, blocks readers)
+- Prevents race conditions during concurrent access
+- Ensures atomic read-modify-write operations
+
+### Input Validation
+All tasks are validated before read/write operations:
+- Ensures tasks are dictionaries with required fields
+- Validates task list structure
+- Returns 500 error for invalid data
+- Prevents corruption from malformed data
+
+### Missing File Handling
+When the PRD file doesn't exist:
+- GET operations return empty list `[]`
+- First write operation creates the file
+- Health check reports `file_exists: false`
+- No errors thrown, graceful degradation
 
 ## File Permissions
 
@@ -247,6 +294,34 @@ The service needs:
 - Write permission in the directory (to update the file)
 
 ## Testing
+
+### Running Unit Tests
+
+The service includes comprehensive unit tests covering all endpoints and error conditions:
+
+```bash
+# Install test dependencies
+pip install -r requirements.txt
+
+# Run all tests
+python3 -m pytest test_prd_service.py -v
+
+# Run specific test class
+python3 -m pytest test_prd_service.py::TestGetTasks -v
+
+# Run with coverage
+python3 -m pytest test_prd_service.py --cov=prd_service
+```
+
+**Test coverage includes:**
+- All 5 API endpoints
+- Input validation functions
+- Error handling (400, 404, 500 errors)
+- File locking behavior
+- Concurrent access patterns
+- Edge cases (missing files, invalid JSON, etc.)
+
+### Manual Testing
 
 ```bash
 # Start service
