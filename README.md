@@ -36,7 +36,8 @@ The pattern mimics how real engineers work: pick a task → complete it → comm
 ├── PRD-PROMPT.md          # Detailed PRD creation guide
 ├── PROMPT_TEMPLATES.md    # Prompt templates for other agents
 ├── progress.txt           # Progress log (example)
-├── ralph_claude           # Claude implementation script
+├── ralph_claude           # Claude Code CLI implementation script
+├── ralph_kiro             # Kiro CLI implementation script
 ├── plans/
 │   └── example-prd.json   # Example PRD file
 └── LICENSE
@@ -75,13 +76,19 @@ Started: 2026-01-06
 
 ### 3. Run the Loop
 
-For Claude Code CLI:
+#### Using Claude Code CLI:
 
 ```bash
 ./ralph_claude 50  # Run 50 iterations
 ```
 
-The script will:
+#### Using Kiro CLI:
+
+```bash
+./ralph_kiro 50  # Run 50 iterations
+```
+
+Both scripts will:
 - Read your PRD and progress
 - Select the highest-priority task
 - Implement it completely
@@ -108,9 +115,30 @@ For other AI agents (GPT, Gemini, etc.), see `PROMPT_TEMPLATES.md` for implement
 - **Append-only progress**: `progress.txt` is append-only to preserve history
 - **No temporary files**: The agent is instructed not to create temporary `progress_*.txt` files
 
+## Implementation Scripts
+
+This repository includes two ready-to-use implementation scripts:
+
+### `ralph_claude`
+Bash script implementing the Ralph Wiggum loop for **Claude Code CLI**:
+- Uses `claude` command with `--permission-mode acceptEdits`
+- Passes PROMPT.md and progress.txt to Claude on each iteration
+- Includes automatic backups and completion detection
+
+### `ralph_kiro`
+Bash script implementing the Ralph Wiggum loop for **Kiro CLI**:
+- Uses `kiro-cli chat` with `--no-interactive --trust-all-tools`
+- Passes PROMPT.md content to Kiro on each iteration
+- Includes automatic backups and completion detection
+
+Both scripts support:
+- Configurable iteration limits
+- Automatic PRD and progress backups
+- Completion detection via `<promise>COMPLETE</promise>` marker
+- Validation that all tasks pass before exit
+
 ## Files and Templates
 
-- **`ralph_claude`**: Bash script implementing the loop for Claude Code CLI
 - **`PROMPT.md`**: Instructions given to the agent on each iteration
 - **`PROMPT_TEMPLATES.md`**: Templates for implementing with other AI agents (GPT, Gemini, etc.)
 - **`PRD-PROMPT.md`**: Comprehensive guide for creating effective PRDs
