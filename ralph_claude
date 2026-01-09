@@ -20,7 +20,7 @@ if [ ! -f "$PROMPT_FILE" ]; then
     exit 1
 fi
 
-for ((i=1; i<=$1; i++)); do
+for ((i=1; i<=$ITERATIONS; i++)); do
     echo "=========================================="
     echo "Iteration $i"
     echo "=========================================="
