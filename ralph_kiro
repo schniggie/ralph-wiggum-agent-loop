@@ -1,0 +1,86 @@
+#!/bin/bash
+
+set -e
+
+# Ralph Wiggum Pattern - AI Coding Agent Loop
+# This script runs Kiro through a backlog of tasks
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <iterations>"
+    exit 1
+fi
+
+ITERATIONS=$1
+PROMPT_FILE="${PROMPT_FILE:-./PROMPT.md}"
+PROGRESS_FILE="${PROGRESS_FILE:-./progress.txt}"
+PRD_FILE="${PRD_FILE:-./prd.json}"
+
+if [ ! -f "$PROMPT_FILE" ]; then
+    echo "Error: $PROMPT_FILE not found"
+    exit 1
+fi
+
+if ! command -v kiro-cli &> /dev/null; then
+    echo "Error: kiro-cli not found. Please install Kiro CLI first."
+    exit 1
+fi
+
+for ((i=1; i<=$ITERATIONS; i++)); do
+    echo "=========================================="
+    echo "Iteration $i"
+    echo "=========================================="
+
+    # Backup prd.json and progress.txt before iteration
+    BACKUP_DIR="../.backup"
+    mkdir -p "$BACKUP_DIR"
+
+    if [ -f "$PRD_FILE" ]; then
+        cp "$PRD_FILE" "$BACKUP_DIR/prd_iteration_${i}.json"
+        echo "Backed up prd.json to $BACKUP_DIR/prd_iteration_${i}.json"
+    fi
+
+    if [ -f "$PROGRESS_FILE" ]; then
+        cp "$PROGRESS_FILE" "$BACKUP_DIR/progress_iteration_${i}.txt"
+        echo "Backed up progress.txt to $BACKUP_DIR/progress_iteration_${i}.txt"
+    fi
+
+    # Run Kiro with the prompt from PROMPT_FILE
+    # The prompt instructs the agent to read progress.txt itself
+    result=$(kiro-cli chat --no-interactive --trust-all-tools <<EOF
+$(cat "$PROMPT_FILE")
+EOF
+)
+
+    # 1. Find the highest-priority feature to work on and work only on that feature.
+    #    This should be the one YOU decide has the highest priority - not necessarily the first
+    # 2. Check that the types check via pnpm typecheck and that the tests pass via pnpm test.
+    # 3. Update the PRD with the work that was done. \\
+    # 4. Append your progress to the progress.txt file. \\
+    #    Use this to leave a note for the next person working in the codebase. \\
+    # 5. Make a git commit of that feature. \\
+    # ONLY WORK ON A SINGLE FEATURE. \\
+    # If, while implementing the feature, you notice the PRD is complete, output <promise>COMPLETE</promise>
+
+    echo "$result"
+
+    if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
+        # Verify that all tasks in prd.json have passes: true
+        if [ -f "$PRD_FILE" ]; then
+            false_count=$(jq '[.[].passes] | map(select(. == false)) | length' "$PRD_FILE")
+            if [ "$false_count" -gt 0 ]; then
+                echo "WARNING: Kiro signaled completion but $false_count tasks still have passes: false"
+                echo "Continuing iterations..."
+            else
+                echo "PRD complete and all tasks pass, exiting."
+                exit 0
+            fi
+        else
+            echo "PRD complete (no prd.json found), exiting."
+            exit 0
+        fi
+    fi
+done
+
+echo "=========================================="
+echo "All iterations complete"
+echo "=========================================="
