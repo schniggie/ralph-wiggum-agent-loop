@@ -20,7 +20,12 @@ if [ ! -f "$PROMPT_FILE" ]; then
     exit 1
 fi
 
-for ((i=1; i<=$1; i++)); do
+if ! command -v kiro-cli &> /dev/null; then
+    echo "Error: kiro-cli not found. Please install Kiro CLI first."
+    exit 1
+fi
+
+for ((i=1; i<=$ITERATIONS; i++)); do
     echo "=========================================="
     echo "Iteration $i"
     echo "=========================================="
@@ -39,19 +44,12 @@ for ((i=1; i<=$1; i++)); do
         echo "Backed up progress.txt to $BACKUP_DIR/progress_iteration_${i}.txt"
     fi
 
-    # Build the prompt by combining PROMPT_FILE and progress.txt
-    prompt_content=$(cat "$PROMPT_FILE")
-    if [ -f "$PROGRESS_FILE" ]; then
-        progress_content=$(cat "$PROGRESS_FILE")
-        full_prompt="$prompt_content
-
-Progress so far:
-$progress_content"
-    else
-        full_prompt="$prompt_content"
-    fi
-
-    result=$(kiro-cli chat --no-interactive --trust-all-tools "$full_prompt")
+    # Run Kiro with the prompt from PROMPT_FILE
+    # The prompt instructs the agent to read progress.txt itself
+    result=$(kiro-cli chat --no-interactive --trust-all-tools <<EOF
+$(cat "$PROMPT_FILE")
+EOF
+)
 
     # 1. Find the highest-priority feature to work on and work only on that feature.
     #    This should be the one YOU decide has the highest priority - not necessarily the first
