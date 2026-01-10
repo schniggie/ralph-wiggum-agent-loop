@@ -10,11 +10,12 @@ Ralph Wiggum is a minimalist approach to autonomous software development that us
 
 - **A simple for loop** instead of complex orchestration systems
 - **A prioritized task list (PRD)** defining work to be done
+- **Git-based progress tracking** using commit messages instead of separate progress files
 - **Iterative execution** where each loop:
-  1. Selects the highest-priority incomplete task
-  2. Completes the task
-  3. Updates progress tracking
-  4. Commits work
+  1. Reviews git history to understand previous work
+  2. Selects the highest-priority incomplete task
+  3. Completes the task
+  4. Commits work with detailed progress information
   5. Repeats until complete
 
 The pattern mimics how real engineers work: pick a task → complete it → commit it → repeat.
@@ -24,8 +25,8 @@ The pattern mimics how real engineers work: pick a task → complete it → comm
 - **Simplicity**: A basic loop is all you need
 - **Feedback Loops**: Tests, type checking, and CI ensure code quality
 - **Single Focus**: Only work on one task per iteration
-- **Progress Tracking**: Document what was done for the next person/agent
-- **Atomic Commits**: Each completed task gets its own commit
+- **Git-Based Progress**: Commit messages serve as progress documentation
+- **Atomic Commits**: Each completed task gets its own descriptive commit with implementation details
 
 ## Project Structure
 
@@ -35,7 +36,6 @@ The pattern mimics how real engineers work: pick a task → complete it → comm
 ├── PROMPT.md              # Agent instructions
 ├── PRD-PROMPT.md          # Detailed PRD creation guide
 ├── PROMPT_TEMPLATES.md    # Prompt templates for other agents
-├── progress.txt           # Progress log (example)
 ├── ralph_claude           # Claude Code CLI implementation script
 ├── ralph_kiro             # Kiro CLI implementation script
 ├── plans/
@@ -64,17 +64,7 @@ Create a `prd.json` file in your project root with your task list (see `plans/ex
 ]
 ```
 
-### 2. Initialize Progress
-
-Create a `progress.txt` file to track your work:
-
-```
-=== Ralph Wiggum Progress Log ===
-Project: Your Project Name
-Started: 2026-01-06
-```
-
-### 3. Run the Loop
+### 2. Run the Loop
 
 #### Using Claude Code CLI:
 
@@ -89,31 +79,31 @@ Started: 2026-01-06
 ```
 
 Both scripts will:
-- Read your PRD and progress
+- Read your PRD via the PRD service API
+- Review git commit history for context
 - Select the highest-priority task
 - Implement it completely
 - Run tests and type checks
-- Commit the changes
-- Update progress
+- Commit the changes with detailed progress information
 - Repeat
 
 For other AI agents (GPT, Gemini, etc.), see `PROMPT_TEMPLATES.md` for implementation guidance.
 
 ## How It Works
 
-1. **Backup**: Before each iteration, `prd.json` and `progress.txt` are backed up to `../.backup/` with iteration counter in filename
-2. **Loop starts**: Agent reads `prd.json` and `progress.txt`
+1. **Backup**: Before each iteration, `prd.json` is backed up to `../.backup/` with iteration counter in filename
+2. **Loop starts**: Agent reads PRD via service API and reviews git commit history
 3. **Task selection**: Agent picks highest-priority incomplete task
-4. **Implementation**: Agent completes the task, runs tests, makes commit
-5. **Progress update**: Agent updates `prd.json` (only the `passes` field) and appends to `progress.txt`
+4. **Implementation**: Agent completes the task, runs tests, makes commit with detailed message
+5. **Progress update**: Agent updates PRD via service API (marks task as passed) and commits with structured message
 6. **Repeat**: Loop continues until all tasks complete or max iterations reached
 
 ### Safety Features
 
-- **Automatic backups**: `prd.json` and `progress.txt` are backed up before each iteration to `../.backup/prd_iteration_N.json` and `../.backup/progress_iteration_N.txt`
-- **Restricted modifications**: The agent can only change the `passes` attribute in `prd.json`, preventing accidental corruption
-- **Append-only progress**: `progress.txt` is append-only to preserve history
-- **No temporary files**: The agent is instructed not to create temporary `progress_*.txt` files
+- **Automatic backups**: `prd.json` is backed up before each iteration to `../.backup/prd_iteration_N.json`
+- **PRD Service API**: All PRD modifications go through the service, preventing file corruption
+- **Git-based history**: Progress is tracked in commit messages, which are immutable and always append-only
+- **Structured commits**: Agents use a standardized commit message format for consistency
 
 ## Implementation Scripts
 
@@ -122,18 +112,20 @@ This repository includes two ready-to-use implementation scripts:
 ### `ralph_claude`
 Bash script implementing the Ralph Wiggum loop for **Claude Code CLI**:
 - Uses `claude` command with `--permission-mode acceptEdits`
-- Passes PROMPT.md and progress.txt to Claude on each iteration
-- Includes automatic backups and completion detection
+- Passes PROMPT.md to Claude on each iteration
+- Agent reads git history for progress context
+- Includes automatic PRD backups and completion detection
 
 ### `ralph_kiro`
 Bash script implementing the Ralph Wiggum loop for **Kiro CLI**:
 - Uses `kiro-cli chat` with `--no-interactive --trust-all-tools`
 - Passes PROMPT.md content to Kiro on each iteration
-- Includes automatic backups and completion detection
+- Agent reads git history for progress context
+- Includes automatic PRD backups and completion detection
 
 Both scripts support:
 - Configurable iteration limits
-- Automatic PRD and progress backups
+- Automatic PRD backups (git provides commit history backup)
 - Completion detection via `<promise>COMPLETE</promise>` marker
 - Validation that all tasks pass before exit
 

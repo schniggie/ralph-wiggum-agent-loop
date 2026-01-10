@@ -12,7 +12,6 @@ fi
 
 ITERATIONS=$1
 PROMPT_FILE="${PROMPT_FILE:-./PROMPT.md}"
-PROGRESS_FILE="${PROGRESS_FILE:-./progress.txt}"
 PRD_FILE="${PRD_FILE:-./prd.json}"
 
 if [ ! -f "$PROMPT_FILE" ]; then
@@ -30,7 +29,7 @@ for ((i=1; i<=$ITERATIONS; i++)); do
     echo "Iteration $i"
     echo "=========================================="
 
-    # Backup prd.json and progress.txt before iteration
+    # Backup prd.json before iteration
     BACKUP_DIR="../.backup"
     mkdir -p "$BACKUP_DIR"
 
@@ -39,25 +38,19 @@ for ((i=1; i<=$ITERATIONS; i++)); do
         echo "Backed up prd.json to $BACKUP_DIR/prd_iteration_${i}.json"
     fi
 
-    if [ -f "$PROGRESS_FILE" ]; then
-        cp "$PROGRESS_FILE" "$BACKUP_DIR/progress_iteration_${i}.txt"
-        echo "Backed up progress.txt to $BACKUP_DIR/progress_iteration_${i}.txt"
-    fi
-
     # Run Kiro with the prompt from PROMPT_FILE
-    # The prompt instructs the agent to read progress.txt itself
+    # The prompt instructs the agent to read git log for progress history
     result=$(kiro-cli chat --no-interactive --trust-all-tools <<EOF
 $(cat "$PROMPT_FILE")
 EOF
 )
 
-    # 1. Find the highest-priority feature to work on and work only on that feature.
+    # 1. Review git log to understand what's been completed in previous iterations
+    # 2. Find the highest-priority feature to work on and work only on that feature.
     #    This should be the one YOU decide has the highest priority - not necessarily the first
-    # 2. Check that the types check via pnpm typecheck and that the tests pass via pnpm test.
-    # 3. Update the PRD with the work that was done. \\
-    # 4. Append your progress to the progress.txt file. \\
-    #    Use this to leave a note for the next person working in the codebase. \\
-    # 5. Make a git commit of that feature. \\
+    # 3. Check that the types check via pnpm typecheck and that the tests pass via pnpm test.
+    # 4. Update the PRD with the work that was done using the PRD service API. \\
+    # 5. Make a git commit with a detailed commit message documenting your progress. \\
     # ONLY WORK ON A SINGLE FEATURE. \\
     # If, while implementing the feature, you notice the PRD is complete, output <promise>COMPLETE</promise>
 
