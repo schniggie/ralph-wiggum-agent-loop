@@ -33,7 +33,7 @@ for ((i=1; i<=$ITERATIONS; i++)); do
         echo "Backed up prd.json to $BACKUP_DIR/prd_iteration_${i}.json"
     fi
 
-    result=$(claude --permission-mode acceptEdits -p "$PROMPT_FILE")
+    result=$(claude --permission-mode bypassPermissions -p "$PROMPT_FILE")
 
     # 1. Review git log to understand what's been completed in previous iterations
     # 2. Find the highest-priority feature to work on and work only on that feature.
