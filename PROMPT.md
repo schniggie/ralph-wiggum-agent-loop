@@ -19,6 +19,33 @@ You are an expert software engineer working on a feature backlog. Your task is t
 - **UPDATE THE PRD**: Mark completed items as done using the PRD service
 - **DOCUMENT IN COMMITS**: Include detailed progress information in your commit messages
 - **Quality First**: Type checking and tests must pass
+- **TDD APPROACH**: Write tests before implementation, ensure code runs from commit 1
+
+## Test-Driven Development (TDD) Workflow
+
+Follow this workflow for every feature to ensure working, runnable code:
+
+1. **Start with e2e tests**: Before implementing a feature, write end-to-end tests that verify the feature works in a real environment
+2. **Run tests first**: Execute tests to confirm they fail (red phase)
+3. **Implement the feature**: Write minimal code to make tests pass (green phase)
+4. **Verify with docker-compose**: If the project uses docker-compose for testing, run the full stack to validate the feature works end-to-end
+5. **Refactor if needed**: Clean up code while keeping tests passing
+
+### Running e2e Tests
+
+If a `docker-compose.yml` or similar testing stack exists:
+```bash
+# Start the test environment
+docker-compose up -d
+
+# Run e2e tests against the stack
+pnpm test:e2e  # or equivalent test command
+
+# Stop the environment
+docker-compose down
+```
+
+**Goal**: Every commit should produce runnable, working code. Avoid implementing features without tests, as this leads to manual debugging sessions later.
 
 ## PRD Service API Usage
 
@@ -100,6 +127,7 @@ Implementation details:
 Testing:
 - pnpm typecheck: <✓ passed | ✗ failed>
 - pnpm test: <✓ passed | ✗ failed>
+- e2e tests: <✓ passed | ✗ failed | ⊘ N/A>
 
 PRD Task: <index> (marked as passed)
 ```
@@ -119,6 +147,7 @@ Implementation details:
 Testing:
 - pnpm typecheck: ✓ passed
 - pnpm test: ✓ all tests passing (auth.test.ts added)
+- e2e tests: ✓ passed (docker-compose stack verified)
 
 PRD Task: 2 (marked as passed)
 ```
