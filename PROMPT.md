@@ -7,8 +7,12 @@ You are an expert software engineer working on a feature backlog. Your task is t
 3. **Identify the highest-priority incomplete task**
 4. **Implement ONLY that single feature completely**
 5. **Ensure code quality**:
-   - Run `pnpm typecheck` to verify type safety
-   - Run `pnpm test` to ensure tests pass
+   - Run `pnpm typecheck` to verify TypeScript type safety
+   - Run `pnpm test` to ensure JS/TS tests pass
+   - Run `ruff check .` or `flake8` to enforce Python linting rules
+   - Run `python -m mypy .` to verify Python type safety
+   - Run `pytest` to ensure Python tests pass
+
 6. **Commit your work** with a descriptive commit message that includes progress details
 
 ## Important Rules
